@@ -19,6 +19,8 @@
 import bpy
 
 PROXY_SUFFIX = ' Proxy'
+HI_SUFFIX = ' hi'
+LO_SUFFIX = ' lo'
 
 
 #----------------------------------------------------------------------------------------------------------------------------------------
@@ -28,8 +30,8 @@ PROXY_SUFFIX = ' Proxy'
 @bpy.app.handlers.persistent
 def proxy_pre_render_handler(scene):
     # store source and proxy objects in generators
-    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
-    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
+    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(HI_SUFFIX))
+    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(LO_SUFFIX))
 
     for obj in scene.objects:
         if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
@@ -46,8 +48,8 @@ def proxy_pre_render_handler(scene):
 @bpy.app.handlers.persistent
 def proxy_post_render_handler(scene):
     # store source and proxy objects in generators
-    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
-    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
+    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(HI_SUFFIX))
+    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(LO_SUFFIX))
 
     for obj in source_objects:
         obj.hide_viewport = True
@@ -87,8 +89,8 @@ class OBJECT_OT_ProxyDisplayOrigin(bpy.types.Operator):
     bl_description = 'Set proxy objects display to empty'
 
     def execute(self, context):
-        source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
-        proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
+        source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(HI_SUFFIX))
+        proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(LO_SUFFIX))
 
         for obj in source_objects:
             obj.hide_viewport = True
@@ -107,9 +109,10 @@ class OBJECT_OT_ProxyDisplayOrigin(bpy.types.Operator):
 # Vertex Cloud Creation 
 # ----------------------------------------------------------------------------------------------------------------------------------------      
 class OBJECT_OT_CreateProxy(bpy.types.Operator):
-    bl_label = "Create Proxy"
-    bl_idname = "object.create_proxy"
-    bl_description = "Create vertex cloud proxy object from active object"
+    bl_label = 'Create Proxy'
+    bl_idname = 'object.create_proxy'
+    bl_description = 'Create vertex cloud proxy object from active object'
+    bl_options = {'REGISTER', 'UNDO'}
 
     # should only work for mesh objects and curves
     @classmethod
@@ -136,7 +139,7 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
         # duplicate source object to get proxy object
         bpy.ops.object.duplicate()
         # replace proxy object automatic suffix with lowpoly suffix    
-        context.active_object.name = context.active_object.name.replace('.001', ' lo')
+        context.active_object.name = context.active_object.name.replace('.001', LO_SUFFIX)
 
         # store proxy object data in variable
         proxy_object = context.active_object
@@ -149,7 +152,10 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
         context.tool_settings.mesh_select_mode = [True, False, False]
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='EDGE_FACE')
-        bpy.ops.mesh.select_random(ratio=proxy_tools.reduce_verts)
+
+        # invert mesh
+        ratio = max(0.0, 1 - proxy_tools.reduce_verts)
+        bpy.ops.mesh.select_random(ratio=ratio)
 
         bpy.ops.mesh.delete(type='VERT')
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -163,7 +169,7 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
 
         source_object_name = source_object.name
         # add high poly suffix to source object
-        source_object.name = source_object.name + ' hi'
+        source_object.name = source_object.name + HI_SUFFIX
 
         # if true, collection will be stored in separate .blend file
         if proxy_tools.off_load:
@@ -232,4 +238,4 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
             if block.users == 0:
                 bpy.data.images.remove(block)
 
-        return {"FINISHED"}
+        return {'FINISHED'}

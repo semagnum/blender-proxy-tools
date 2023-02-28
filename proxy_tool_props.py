@@ -25,37 +25,38 @@ def update_display_type(self, context):
 class PROPS_UL_ProxyToolProperties(bpy.types.PropertyGroup):
     # create float property for Reduce Verts
     reduce_verts: bpy.props.FloatProperty(
-        name="Reduce Verts",
-        default=0.998,
-        min=0.00,
-        max=0.99,
+        name='Ratio',
+        default=1.0,
+        min=0.01,
+        max=1.0,
         precision=2,
-        description="Reduce vertices by percent",
-        subtype="PERCENTAGE",
+        description='Ratio of vertices to reduce object to for proxy point cloud',
+        subtype='FACTOR',
     )
 
     # create string property for Proxy Path
     proxy_path: bpy.props.StringProperty(
-        name="Proxy Path",
-        default="//Proxy.blend",
-        description="Define the directory to store the proxy object file",
+        name='Proxy Path',
+        default='//Proxy.blend',
+        description='External blend file path to store proxy object',
         subtype='FILE_PATH',
     )
 
     # create bool property Offload
     off_load: bpy.props.BoolProperty(
-        name="Off Load",
-        description="Store collection data in separate library file",
+        name='Off Load',
+        description='If checked, store collection data in separate blend file. '
+                    'Else, collection will be unlinked from scene but remain in current file',
         default=True,
     )
 
     # create enum property for display type
     display_type_list: bpy.props.EnumProperty(
-        name="Display Type List",
-        items=[("object.proxy_postrender", "Point Cloud", '', 1),
-               ("object.proxy_prerender", "Bounds", '', 2),
-               ("object.proxy_displayorigin", "Origin", '', 3)],
-        description="Set proxy object display type",
-        default="object.proxy_postrender",
+        name='Display Type List',
+        items=[('object.proxy_postrender', 'Point Cloud', 'Displays proxies as point clouds', 'POINTCLOUD_DATA', 1),
+               ('object.proxy_prerender', 'Bounds', 'Displays proxies as their bounding boxes', 'PIVOT_BOUNDBOX', 2),
+               ('object.proxy_displayorigin', 'Origin', 'Displays proxies only as their origins', 'OBJECT_ORIGIN', 3)],
+        description='Set display type for all proxy objects in your project',
+        default='object.proxy_postrender',
         update=update_display_type,
     )

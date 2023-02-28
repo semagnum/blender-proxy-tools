@@ -18,15 +18,15 @@
 
 
 bl_info = {
-    "name": "Proxy Tools",
-    "author": "xrogueleaderx",
-    "version": (1, 2, 2),
-    "blender": (3, 3, 0),
-    "location": "View3D > UI > Proxy Tools",
-    "description": "Tool to create vertex cloud representations of highpoly objects",
-    "warning": "",
-    "wiki_url": "",
-    "category": "Object",
+    'name': 'Proxy Tools',
+    'author': 'xrogueleaderx',
+    'version': (1, 2, 2),
+    'blender': (3, 3, 0),
+    'location': 'View3D > UI > Proxy Tools',
+    'description': 'Tool to create vertex cloud representations of highpoly objects',
+    'warning': '',
+    'wiki_url': '',
+    'category': 'Object',
 }
 
 #----------------------------------------------------------------------------------------------------------------------------------------
@@ -66,5 +66,5 @@ def unregister():
     bpy.app.handlers.render_post.remove(proxy_post_render_handler)
     del bpy.types.Scene.proxy_tools
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     register()

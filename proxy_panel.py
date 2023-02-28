@@ -22,43 +22,35 @@ from .proxy_operators import OBJECT_OT_CreateProxy, OBJECT_OT_ProxyPreRender, OB
 
 class OBJECT_PT_ProxyPanel(bpy.types.Panel):
     # create panel in UI under category Proxy
-    bl_label = "Create Proxy"
-    bl_idname = "TOOLS_PT_CreateProxy"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Proxy Tools"
-    bl_context = "objectmode"
+    bl_label = 'Create Proxy'
+    bl_idname = 'TOOLS_PT_CreateProxy'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'Proxy Tools'
+    bl_context = 'objectmode'
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
         proxy_tools = scene.proxy_tools
 
-        # create label
-        layout.label(text="Convert Object to Vertex Cloud")
+        layout.label(text='Convert Object to Vertex Cloud')
+        layout.prop(proxy_tools, 'reduce_verts')
 
-        # create slider with Reduce Verts property
-        layout.prop(proxy_tools, "reduce_verts", text="Vertex Reduction")
-
-        # create directory selection
         row = layout.row()
-        row.prop(proxy_tools, "proxy_path")
-
-        # create checkbox for off load geometry
+        row.prop(proxy_tools, 'off_load', text='Offload Geometry')
         row = layout.row()
-        row.prop(proxy_tools, "off_load", text="Offload Geometry")
+        row.enabled = proxy_tools.off_load
+        row.prop(proxy_tools, 'proxy_path', text='')
 
-        # create conversion button
         row = layout.row()
         row.operator(OBJECT_OT_CreateProxy.bl_idname)
 
-        layout.label(text="Display Type")
-        layout.prop(proxy_tools, "display_type_list", text="")
+        layout.label(text='Proxy Display Type')
+        layout.prop(proxy_tools, 'display_type_list', text='')
 
-        layout.label(text="Convert Scene")
+        layout.label(text='Convert Scene')
 
         row = layout.row()
-        # create pre render button
-        row.operator(OBJECT_OT_ProxyPreRender.bl_idname, icon="CUBE")
-        # create post render button
-        row.operator(OBJECT_OT_ProxyPostRender.bl_idname, icon="STICKY_UVS_DISABLE")
+        row.operator(OBJECT_OT_ProxyPreRender.bl_idname, icon='CUBE')
+        row.operator(OBJECT_OT_ProxyPostRender.bl_idname, icon='STICKY_UVS_DISABLE')
