@@ -30,10 +30,6 @@ class OBJECT_PT_ProxyPanel(bpy.types.Panel):
     bl_context = "objectmode"
 
     def draw(self, context):
-        # store source and proxy objects in lists
-        SourceObjectList = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
-        ProxyObjectList = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
-
         layout = self.layout
         scene = context.scene
         proxy_tools = scene.proxy_tools

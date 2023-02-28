@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Proxy Tools",
     "author": "xrogueleaderx",
-    "version": (1, 2, 1),
+    "version": (1, 2, 2),
     "blender": (3, 3, 0),
     "location": "View3D > UI > Proxy Tools",
     "description": "Tool to create vertex cloud representations of highpoly objects",
@@ -35,9 +35,9 @@ bl_info = {
 import bpy
 
 from .proxy_tool_props import PROPS_UL_ProxyToolProperties
-from .proxy_operators import ProxyPreRenderHandler, ProxyPostRenderHandler
+from .proxy_operators import proxy_pre_render_handler, proxy_post_render_handler
 from .proxy_operators import OBJECT_OT_CreateProxy, OBJECT_OT_ProxyPreRender, OBJECT_OT_ProxyPostRender
-from .proxy_operators import OBJECT_OT_CreateProxyTest, OBJECT_OT_ProxyDisplayOrigin
+from .proxy_operators import OBJECT_OT_ProxyDisplayOrigin
 from .proxy_panel import OBJECT_PT_ProxyPanel
 
 #----------------------------------------------------------------------------------------------------------------------------------------
@@ -47,7 +47,6 @@ classes = (
     PROPS_UL_ProxyToolProperties,
     OBJECT_PT_ProxyPanel,
     OBJECT_OT_CreateProxy,
-    OBJECT_OT_CreateProxyTest,
     OBJECT_OT_ProxyPreRender,
     OBJECT_OT_ProxyPostRender,
     OBJECT_OT_ProxyDisplayOrigin,
@@ -56,15 +55,15 @@ classes = (
 def register():
     for cls in classes:
          bpy.utils.register_class(cls)
-    bpy.app.handlers.render_pre.append(ProxyPreRenderHandler)
-    bpy.app.handlers.render_post.append(ProxyPostRenderHandler)
+    bpy.app.handlers.render_pre.append(proxy_pre_render_handler)
+    bpy.app.handlers.render_post.append(proxy_post_render_handler)
     bpy.types.Scene.proxy_tools = bpy.props.PointerProperty(type = PROPS_UL_ProxyToolProperties)
 
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-    bpy.app.handlers.render_pre.remove(ProxyPreRenderHandler)
-    bpy.app.handlers.render_post.remove(ProxyPostRenderHandler)
+    bpy.app.handlers.render_pre.remove(proxy_pre_render_handler)
+    bpy.app.handlers.render_post.remove(proxy_post_render_handler)
     del bpy.types.Scene.proxy_tools
 
 if __name__ == "__main__":
