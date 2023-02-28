@@ -27,9 +27,9 @@ PROXY_SUFFIX = " Proxy"
 
 @bpy.app.handlers.persistent
 def proxy_pre_render_handler(scene):
-    # store source and proxy objects in lists
-    source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
-    proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
+    # store source and proxy objects in generators
+    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
+    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
 
     for obj in scene.objects:
         if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
@@ -45,9 +45,9 @@ def proxy_pre_render_handler(scene):
 
 @bpy.app.handlers.persistent
 def proxy_post_render_handler(scene):
-    # store source and proxy objects in lists
-    source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
-    proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
+    # store source and proxy objects in generators
+    source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
+    proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
 
     for obj in source_objects:
         obj.hide_viewport = True
@@ -87,8 +87,8 @@ class OBJECT_OT_ProxyDisplayOrigin(bpy.types.Operator):
     bl_description = 'Set proxy objects display to empty'
 
     def execute(self, context):
-        source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
-        proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
+        source_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" hi"))
+        proxy_objects = (obj for obj in bpy.data.objects if obj.name.endswith(" lo"))
 
         for obj in source_objects:
             obj.hide_viewport = True
@@ -166,7 +166,7 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
         source_object.name = source_object.name + ' hi'
 
         # if true, collection will be stored in separate .blend file
-        if proxy_tools.off_load == True:
+        if proxy_tools.off_load:
             # set variables 
             filepath = proxy_tools.proxy_path
             data_blocks = set(bpy.data.collections)
