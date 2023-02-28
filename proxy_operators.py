@@ -31,7 +31,7 @@ def proxy_pre_render_handler(scene):
     source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
     proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
 
-    for obj in bpy.context.scene.objects:
+    for obj in scene.objects:
         if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
             obj.display_type = 'BOUNDS'
 
@@ -53,29 +53,12 @@ def proxy_post_render_handler(scene):
         obj.hide_viewport = True
         obj.display_type = 'SOLID'
 
-    for obj in bpy.context.scene.objects:
-        if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
-            obj.display_type = 'SOLID'
-
-    for obj in proxy_objects:
-        obj.hide_viewport = False
-
-
-def proxy_display_origin(scene):
-    # store source and proxy objects in lists
-    source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
-    proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
-
-    for obj in source_objects:
-        obj.hide_viewport = True
-        obj.display_type = 'SOLID'
-
     for obj in scene.objects:
         if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
             obj.display_type = 'SOLID'
 
     for obj in proxy_objects:
-        obj.hide_viewport = True
+        obj.hide_viewport = False
 
 
 class OBJECT_OT_ProxyPreRender(bpy.types.Operator):
@@ -84,7 +67,7 @@ class OBJECT_OT_ProxyPreRender(bpy.types.Operator):
     bl_description = 'Set proxy objects display to bounds'
 
     def execute(self, context):
-        proxy_pre_render_handler(bpy.context.scene)
+        proxy_pre_render_handler(context.scene)
         return {'FINISHED'}
 
 
@@ -94,7 +77,7 @@ class OBJECT_OT_ProxyPostRender(bpy.types.Operator):
     bl_description = 'Set proxy objects display to vertex cloud'
 
     def execute(self, context):
-        proxy_post_render_handler(bpy.context.scene)
+        proxy_post_render_handler(context.scene)
         return {'FINISHED'}
 
 
@@ -104,7 +87,19 @@ class OBJECT_OT_ProxyDisplayOrigin(bpy.types.Operator):
     bl_description = 'Set proxy objects display to empty'
 
     def execute(self, context):
-        proxy_display_origin(context.scene)
+        source_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" hi")]
+        proxy_objects = [obj for obj in bpy.data.objects if obj.name.endswith(" lo")]
+
+        for obj in source_objects:
+            obj.hide_viewport = True
+            obj.display_type = 'SOLID'
+
+        for obj in context.scene.objects:
+            if obj.type == 'EMPTY' and obj.name.endswith(PROXY_SUFFIX):
+                obj.display_type = 'SOLID'
+
+        for obj in proxy_objects:
+            obj.hide_viewport = True
         return {'FINISHED'}
 
 
@@ -119,21 +114,21 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
     # should only work for mesh objects and curves
     @classmethod
     def poll(cls, context):
-        return bpy.context.object.select_get() and bpy.context.object.type == 'MESH'
+        return context.object.select_get() and context.object.type == 'MESH'
 
     def execute(self, context):
         scene = context.scene
         proxy_tools = scene.proxy_tools
 
         # store original location of source object
-        original_location = [bpy.context.active_object.location[0], bpy.context.active_object.location[1],
-                            bpy.context.active_object.location[2]]
+        original_location = [context.active_object.location[0], context.active_object.location[1],
+                            context.active_object.location[2]]
 
         # reset source object location to world origin
         bpy.ops.object.location_clear(clear_delta=True)
 
         # store source object data in variable
-        source_object = bpy.context.active_object
+        source_object = context.active_object
         # create new collection with source object name and proxy object suffix
         bpy.ops.object.move_to_collection(collection_index=0, is_new=True,
                                           new_collection_name=source_object.name + ' Proxy')
@@ -141,17 +136,17 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
         # duplicate source object to get proxy object
         bpy.ops.object.duplicate()
         # replace proxy object automatic suffix with lowpoly suffix    
-        bpy.context.active_object.name = bpy.context.active_object.name.replace('.001', ' lo')
+        context.active_object.name = context.active_object.name.replace('.001', ' lo')
 
         # store proxy object data in variable
-        proxy_object = bpy.context.active_object
+        proxy_object = context.active_object
 
         # apply all modifiers
         bpy.ops.object.convert(target='MESH')
 
         # create vertex cloud representation by deleting all edges and faces and high number of vertices
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.context.tool_settings.mesh_select_mode = [True, False, False]
+        context.tool_settings.mesh_select_mode = [True, False, False]
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='EDGE_FACE')
         bpy.ops.mesh.select_random(ratio=proxy_tools.reduce_verts)
@@ -186,8 +181,8 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
             # create an empty to instance the linked proxy collection to
             bpy.ops.object.empty_add(type='SINGLE_ARROW')
             # rename ceated empty accordingly
-            bpy.context.active_object.name = source_object_name + PROXY_SUFFIX
-            empty_object = bpy.context.active_object
+            context.active_object.name = source_object_name + PROXY_SUFFIX
+            empty_object = context.active_object
 
             # remove source and proxy object and original collection
             bpy.data.objects.remove(source_object, do_unlink=True)
@@ -195,31 +190,30 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
             bpy.data.collections.remove(collection=bpy.data.collections[empty_object.name])
 
             # instance linked proxy collection to empty
-            bpy.context.object.instance_collection = bpy.data.collections[empty_object.name]
+            context.object.instance_collection = bpy.data.collections[empty_object.name]
             # set empty instance type to collection to make proxy collection visible
-            bpy.context.object.instance_type = 'COLLECTION'
+            context.object.instance_type = 'COLLECTION'
 
             # place proxy collection at source object location
-            bpy.context.active_object.location = original_location
+            context.active_object.location = original_location
 
         # if false, collection will be unlinked from scene but remain in current .blend file    
         else:
             # create an empty to instance proxy collection
             bpy.ops.object.empty_add(type='SINGLE_ARROW')
             # rename ceated empty accordingly
-            bpy.context.active_object.name = source_object_name + PROXY_SUFFIX
-            empty_object = bpy.context.active_object
+            context.active_object.name = source_object_name + PROXY_SUFFIX
+            empty_object = context.active_object
 
-            bpy.context.object.instance_collection = bpy.data.collections[empty_object.name]
+            context.object.instance_collection = bpy.data.collections[empty_object.name]
 
-            bpy.context.object.instance_type = 'COLLECTION'
+            context.object.instance_type = 'COLLECTION'
 
             # place proxy collection at source object location
-            bpy.context.active_object.location = original_location
+            context.active_object.location = original_location
 
             # unlink collection from scene
-            bpy.context.scene.collection.children.unlink(
-                bpy.context.scene.collection.children[source_object_name + ' Proxy'])
+            context.scene.collection.children.unlink(context.scene.collection.children[source_object_name + ' Proxy'])
 
         # clean file from unused accumulated datablocks    
         for block in bpy.data.meshes:
