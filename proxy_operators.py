@@ -18,7 +18,7 @@
 
 import bpy
 
-PROXY_SUFFIX = " Proxy"
+PROXY_SUFFIX = ' Proxy'
 
 
 #----------------------------------------------------------------------------------------------------------------------------------------
@@ -131,7 +131,7 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
         source_object = context.active_object
         # create new collection with source object name and proxy object suffix
         bpy.ops.object.move_to_collection(collection_index=0, is_new=True,
-                                          new_collection_name=source_object.name + ' Proxy')
+                                          new_collection_name=source_object.name + PROXY_SUFFIX)
 
         # duplicate source object to get proxy object
         bpy.ops.object.duplicate()
@@ -213,7 +213,7 @@ class OBJECT_OT_CreateProxy(bpy.types.Operator):
             context.active_object.location = original_location
 
             # unlink collection from scene
-            context.scene.collection.children.unlink(context.scene.collection.children[source_object_name + ' Proxy'])
+            context.scene.collection.children.unlink(context.scene.collection.children[source_object_name + PROXY_SUFFIX])
 
         # clean file from unused accumulated datablocks    
         for block in bpy.data.meshes:
